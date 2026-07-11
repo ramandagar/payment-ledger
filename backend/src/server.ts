@@ -10,7 +10,9 @@ import { applyPayment, listPayments } from "./invoice/payment.js";
 import { ensureSeed } from "./db/seed-runner.js";
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? true }));
+// "*" or unset => reflect any origin (wildcard). Otherwise treat as a comma allowlist.
+const corsOrigin = process.env.CORS_ORIGIN?.trim();
+app.use(cors(corsOrigin && corsOrigin !== "*" ? { origin: corsOrigin.split(",") } : { origin: true }));
 app.use(express.json());
 
 const port = Number(process.env.PORT ?? 4000);
