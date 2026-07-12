@@ -6,7 +6,7 @@ import { initSchema, pool, closePool, withTransaction } from "./db/client.js";
 import { ensureSeed } from "./db/seed-runner.js";
 import { createAccount, getBalance, listAccounts } from "./ledger/accounts.js";
 import { postTransaction, BalancedTransactionError, ZeroAmountError } from "./ledger/posting.js";
-import { createInvoice, getInvoice, issueInvoice, listInvoices, ValidationError, NotFoundError, ConflictError } from "./invoice/invoice.js";
+import { createInvoice, getInvoice, issueInvoice, listInvoices, deleteInvoice, ValidationError, NotFoundError, ConflictError } from "./invoice/invoice.js";
 import { applyPayment, listPayments } from "./invoice/payment.js";
 
 const app = express();
@@ -118,6 +118,9 @@ app.get("/invoices/:id", async (req, res, next) => {
 });
 app.post("/invoices/:id/issue", async (req, res, next) => {
   try { res.json(await issueInvoice(req.params.id)); } catch (e) { next(e); }
+});
+app.delete("/invoices/:id", async (req, res, next) => {
+  try { await deleteInvoice(req.params.id); res.status(204).end(); } catch (e) { next(e); }
 });
 
 // --- payments ---

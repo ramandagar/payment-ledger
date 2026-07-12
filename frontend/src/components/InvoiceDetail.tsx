@@ -36,6 +36,7 @@ export function InvoiceDetail({
   const [method, setMethod] = useState("card");
   const [paying, setPaying] = useState(false);
   const [issuing, setIssuing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!invoiceId) {
@@ -84,6 +85,22 @@ export function InvoiceDetail({
       notify(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setIssuing(false);
+    }
+  }
+
+  async function del() {
+    if (!inv) return;
+    if (!window.confirm(`Delete draft ${inv.number}? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      await api.deleteInvoice(inv.id);
+      notify(`Draft ${inv.number} deleted`, "success");
+      onMutate();
+      onClose();
+    } catch (e) {
+      notify(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -177,9 +194,14 @@ export function InvoiceDetail({
           {inv.status === "draft" && (
             <div className="callout">
               <span>This is a draft. Issue it to post the receivable and revenue to the ledger.</span>
-              <Button onClick={issue} disabled={issuing}>
-                {issuing ? "Issuing…" : "Issue invoice"}
-              </Button>
+              <div className="form-actions">
+                <Button onClick={issue} disabled={issuing || deleting}>
+                  {issuing ? "Issuing…" : "Issue invoice"}
+                </Button>
+                <Button onClick={del} disabled={issuing || deleting} variant="subtle" size="sm">
+                  {deleting ? "Deleting…" : "Delete draft"}
+                </Button>
+              </div>
             </div>
           )}
 

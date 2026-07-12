@@ -151,6 +151,7 @@ export const api = {
     currency?: string;
   }) => req<InvoiceView>("/invoices", { method: "POST", body: JSON.stringify(body) }),
   issueInvoice: (id: string) => req<InvoiceView>(`/invoices/${id}/issue`, { method: "POST" }),
+  deleteInvoice: (id: string) => req<void>(`/invoices/${id}`, { method: "DELETE" }),
 
   listInvoicePayments: (id: string) => req<Payment[]>(`/invoices/${id}/payments`),
   applyPayment: (id: string, body: { amountCents: number; idempotencyKey: string; method?: string; reference?: string }) =>

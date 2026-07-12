@@ -59,6 +59,12 @@ async function nextInvoiceNumber(client: DbClient): Promise<string> {
 
 export async function createInvoice(input: CreateInvoiceInput): Promise<InvoiceView> {
   if (!input.lineItems?.length) throw new ValidationError("invoice needs at least one line item");
+  const previewTotal = totalsFor(
+    input.lineItems.map((li) => ({ quantity: li.quantity, unitPriceCents: li.unitPriceCents, taxBps: li.taxBps ?? 0 }))
+  ).totalCents;
+  if (previewTotal <= 0) {
+    throw new ValidationError("invoice total must be greater than zero — set a unit price on at least one line");
+  }
   return withClient(pool, async (client) => {
     const cust = await client.query("SELECT id FROM accounts WHERE id = $1", [input.customerAccountId]);
     if (!cust.rowCount) throw new NotFoundError("customer account not found");
@@ -161,6 +167,17 @@ export async function listInvoices(): Promise<InvoiceView[]> {
   return Promise.all(rows.map((r) => getInvoice(r.id)));
 }
 
+/** Delete a draft invoice (and its line items). Only drafts — once issued it's in the ledger. */
+export async function deleteInvoice(id: string): Promise<void> {
+  const { rows } = await pool.query("SELECT status::text AS status FROM invoices WHERE id = $1", [id]);
+  if (!rows.length) throw new NotFoundError("invoice not found");
+  if (rows[0].status !== "draft") {
+    throw new ConflictError(`only draft invoices can be deleted (this one is '${rows[0].status}')`);
+  }
+  await pool.query("DELETE FROM invoice_line_items WHERE invoice_id = $1", [id]);
+  await pool.query("DELETE FROM invoices WHERE id = $1", [id]);
+}
+
 /** Issue a draft invoice: status draft→sent, then post the double-entry to the ledger. */
 export async function issueInvoice(id: string): Promise<InvoiceView> {
   return withClient(pool, async (client) => {
@@ -170,6 +187,9 @@ export async function issueInvoice(id: string): Promise<InvoiceView> {
     if (rows[0].status !== "draft") throw new ConflictError(`cannot issue invoice in '${rows[0].status}' state`);
 
     const view = await getInvoice(id, client);
+    if (view.totals.totalCents <= 0) {
+      throw new ConflictError("cannot issue an invoice with a zero total — edit the line items first");
+    }
     // Each customer is modeled as their own receivable (asset) account, so the
     // invoice debits THAT account and the payment credits it — they net to zero
     // when paid in full. (1200 is the AR control account in the chart of accounts.)
