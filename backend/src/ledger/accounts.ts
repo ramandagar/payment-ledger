@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { pool, type DbClient } from "../db/client.js";
 import type { Cents } from "../lib/money.js";
+import { ConflictError } from "../lib/errors.js";
 
 export interface Account {
   id: string;
@@ -24,11 +25,19 @@ export async function createAccount(input: {
   currency?: string;
 }): Promise<Account> {
   const id = randomUUID();
-  await pool.query(
-    `INSERT INTO accounts (id, code, name, type, currency)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [id, input.code, input.name, input.type, input.currency ?? "USD"]
-  );
+  try {
+    await pool.query(
+      `INSERT INTO accounts (id, code, name, type, currency)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, input.code, input.name, input.type, input.currency ?? "USD"]
+    );
+  } catch (err) {
+    // unique_violation on accounts.code → friendly 409 instead of a raw DB error
+    if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "23505") {
+      throw new ConflictError(`Account code "${input.code}" already exists — choose a different code.`);
+    }
+    throw err;
+  }
   return { id, code: input.code, name: input.name, type: input.type, currency: input.currency ?? "USD" };
 }
 

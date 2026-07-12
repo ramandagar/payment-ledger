@@ -3,6 +3,7 @@ import { pool, type DbClient } from "../db/client.js";
 import { totalsFor, type InvoiceTotals, type LineItem } from "../lib/money.js";
 import { postTransaction, type LedgerEntryInput } from "../ledger/posting.js";
 import { getAccountByCode } from "../ledger/accounts.js";
+import { ValidationError, NotFoundError, ConflictError } from "../lib/errors.js";
 
 export interface InvoiceLineInput {
   description: string;
@@ -40,15 +41,8 @@ export interface InvoiceView {
 
 const PAYABLE_STATES: InvoiceStatus[] = ["sent", "partial"];
 
-export class ValidationError extends Error {
-  status = 400;
-}
-export class NotFoundError extends Error {
-  status = 404;
-}
-export class ConflictError extends Error {
-  status = 409;
-}
+// Re-exported so route handlers keep a single import surface for HTTP errors.
+export { ValidationError, NotFoundError, ConflictError } from "../lib/errors.js";
 
 async function nextInvoiceNumber(client: DbClient): Promise<string> {
   const { rows } = await client.query<{ n: string }>(
