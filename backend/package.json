@@ -6,7 +6,7 @@
   "description": "Mini double-entry payment ledger & invoice service",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && cp src/db/schema.sql dist/db/schema.sql",
     "start": "node dist/server.js",
     "test": "vitest run",
     "db:init": "tsx src/db/init.ts",

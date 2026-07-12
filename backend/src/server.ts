@@ -3,11 +3,11 @@ import express from "express";
 import cors from "cors";
 import { z } from "zod";
 import { initSchema, pool, closePool, withTransaction } from "./db/client.js";
+import { ensureSeed } from "./db/seed-runner.js";
 import { createAccount, getBalance, listAccounts } from "./ledger/accounts.js";
 import { postTransaction, BalancedTransactionError, ZeroAmountError } from "./ledger/posting.js";
 import { createInvoice, getInvoice, issueInvoice, listInvoices, ValidationError, NotFoundError, ConflictError } from "./invoice/invoice.js";
 import { applyPayment, listPayments } from "./invoice/payment.js";
-import { ensureSeed } from "./db/seed-runner.js";
 
 const app = express();
 // "*" or unset => reflect any origin (wildcard). Otherwise treat as a comma allowlist.
@@ -156,6 +156,7 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
 const server = app.listen(port, async () => {
   try {
     await initSchema();
+    await ensureSeed(); // best-effort: chart of accounts + demo customer on fresh DBs
     console.log(`✓ API on http://localhost:${port}`);
   } catch (e) {
     console.error("schema init failed — is Postgres up? (DATABASE_URL =", process.env.DATABASE_URL, ")");
