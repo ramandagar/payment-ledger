@@ -128,7 +128,6 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 // ---------------- API surface ----------------
 export const api = {
   health: () => req<{ ok: boolean }>("/health"),
-  seed: () => req<{ seeded: boolean }>("/seed", { method: "POST" }),
 
   listAccounts: () => req<AccountWithBalance[]>("/accounts"),
   createAccount: (body: { code: string; name: string; type: AccountType; currency?: string }) =>

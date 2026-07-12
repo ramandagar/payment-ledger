@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { api, type AccountWithBalance, type InvoiceView } from "../api";
 import { useAsync } from "../lib/useAsync";
 import { formatCents } from "../lib/money";
-import { Button, EmptyState, ErrorBanner, Spinner, useToast } from "./ui";
+import { EmptyState, ErrorBanner, Spinner } from "./ui";
 
 // Receivable = asset accounts whose name/code reads as receivable (1200 AR control, AR_* customers).
 function isReceivable(a: AccountWithBalance) {
@@ -24,11 +23,9 @@ function Tile({ label, value, sub, accent }: { label: string; value: string; sub
   );
 }
 
-export function Overview({ refreshKey, onMutate }: { refreshKey: number; onMutate: () => void }) {
-  const notify = useToast();
+export function Overview({ refreshKey }: { refreshKey: number; onMutate: () => void }) {
   const accounts = useAsync<AccountWithBalance[]>(() => api.listAccounts(), [refreshKey]);
   const invoices = useAsync<InvoiceView[]>(() => api.listInvoices(), [refreshKey]);
-  const [seeding, setSeeding] = useState(false);
 
   const accs = accounts.data ?? [];
   const invs = invoices.data ?? [];
@@ -40,19 +37,6 @@ export function Overview({ refreshKey, onMutate }: { refreshKey: number; onMutat
   const loading = accounts.loading || invoices.loading;
   const error = accounts.error || invoices.error;
 
-  async function seed() {
-    setSeeding(true);
-    try {
-      await api.seed();
-      notify("Demo data seeded", "success");
-      onMutate();
-    } catch (e) {
-      notify(e instanceof Error ? e.message : String(e), "error");
-    } finally {
-      setSeeding(false);
-    }
-  }
-
   return (
     <section>
       <div className="section-head">
@@ -60,9 +44,6 @@ export function Overview({ refreshKey, onMutate }: { refreshKey: number; onMutat
           <h2>Overview</h2>
           <p className="muted">Double-entry ledger and invoice health at a glance.</p>
         </div>
-        <Button onClick={seed} disabled={seeding} variant="subtle">
-          {seeding ? "Seeding…" : "Seed demo data"}
-        </Button>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={() => { accounts.reload(); invoices.reload(); }} />}
@@ -81,11 +62,11 @@ export function Overview({ refreshKey, onMutate }: { refreshKey: number; onMutat
         </div>
       ) : null}
 
-      {!loading && !accs.length && !invs.length && (
+      {!loading && !invs.length && (
         <div className="card">
           <EmptyState
-            title="No data yet"
-            hint="Click “Seed demo data” to create a chart of accounts and a sample customer, then create an invoice."
+            title="No invoices yet"
+            hint="Create a customer account under Accounts, then draft an invoice and record a payment to see the ledger update."
           />
         </div>
       )}

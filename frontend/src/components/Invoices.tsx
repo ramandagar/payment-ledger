@@ -83,7 +83,7 @@ export function Invoices({ refreshKey, onMutate }: { refreshKey: number; onMutat
         <div className="card">
           <EmptyState
             title="No invoices yet"
-            hint={accs.length ? "Click “New invoice” to draft one." : "Seed demo data or create a customer account first."}
+            hint={accs.length ? "Click “New invoice” to draft one." : "Create a customer account under Accounts first."}
           />
         </div>
       )}

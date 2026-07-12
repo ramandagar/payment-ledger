@@ -16,6 +16,6 @@ export async function ensureSeed(): Promise<void> {
     if (!(await getAccountByCode(a.code))) await createAccount(a);
   }
   if (!(await getAccountByCode("AR_DEMO"))) {
-    await createAccount({ code: "AR_DEMO", name: "Acme Logistics (demo customer)", type: "asset" });
+    await createAccount({ code: "AR_DEMO", name: "Acme Logistics", type: "asset" });
   }
 }

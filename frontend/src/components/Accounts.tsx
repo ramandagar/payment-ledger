@@ -53,7 +53,7 @@ export function Accounts({ refreshKey, onMutate }: { refreshKey: number; onMutat
 
       {!loading && !accounts.length && !error && (
         <div className="card">
-          <EmptyState title="No accounts" hint="Create one, or seed demo data from the Overview tab." />
+          <EmptyState title="No accounts" hint="Create a customer or ledger account to get started." />
         </div>
       )}
 
