@@ -2,6 +2,16 @@
 
 A double-entry payment ledger and invoice service for a TMS **Accounts Payable / payment-processing module**. Backend in **Node.js + TypeScript + Express + PostgreSQL**, frontend in **React + Vite + TypeScript**.
 
+## 🔗 Live demo
+
+| What | URL |
+|---|---|
+| **Hosted UI** | https://ramandagar.github.io/payment-ledger/ |
+| **Backend API** | https://payment-ledger-production-9b60.up.railway.app/health |
+| **Source code** | https://github.com/ramandagar/payment-ledger |
+
+The hosted UI is connected to a live PostgreSQL-backed API and is pre-loaded with sample invoices and a partial payment. Create an invoice, issue it, and record a payment to watch the double-entry ledger update in real time.
+
 > Stack note: the JD mentioned GraphQL and Spring Boot. The brief explicitly allows *"language of your choice, or specify your stack."* I chose Node.js/TypeScript/PostgreSQL because it's my strongest stack, so the result is correct and defensible rather than thinly faked in a language I can't stand behind in an interview. A GraphQL layer is a clean add-on (see *What I'd do differently*).
 
 ---
